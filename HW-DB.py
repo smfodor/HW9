@@ -56,18 +56,18 @@ def get_tweets(api, cacheDict, fname):
 ## tweet_text - containing the text that goes with that tweet
 ## retweets - containing the number that represents how many times the tweet has been retweeted
 def setUpTweetTable(tweetList, conn, cur):
-
-	conn = sqlite3.connect("tweets.sqlite")
+    conn = sqlite3.connect("tweets.sqlite")
     cur = conn.cursor()
     cur.execute("DROP TABLE IF EXISTS Tweets")
     cur.execute("CREATE TABLE Tweets(tweet_id REAL, author TEXT, time_posted TIMESTAMP, tweet_text TEXT, retweets REAL)")
-
     for tweet in tweetList:
         tweet_id = tweet["id"]
-        author = tweet["id"]
-        time_posted = tweet["id"]
-        tweet_text = tweet["id"]
-        retweets = tweet["id"]
+        author = tweet["user"]["screen_name"]
+        time_posted = tweet["created_at"]
+        tweet_text = tweet["text"]
+        retweets = tweet["retweet_count"]
+        cur.execute("INSERT INTO Tweets(tweet_id, author, time_posted, tweet_text, retweets) VALUES (?,?,?,?,?)",(tweet_id, author, time_posted, tweet_text, retweets))
+    conn.commit()
 
 ## [PART 3]
 # Finish the function getTimeAndText that returns a list of strings that contain the
@@ -76,8 +76,12 @@ def setUpTweetTable(tweetList, conn, cur):
 # of strings that contain the date/time and text of each tweet in the form: date/time - text as shown below
 # Mon Oct 09 16:02:03 +0000 2017 - #MondayMotivation https://t.co/vLbZpH390b
 def getTimeAndText(cur):
-
-	pass
+    time_and_text = []
+    cur.execute('SELECT time_posted, tweet_text FROM Tweets')
+    time_text = cur.fetchall()
+    for tweet in time_text:
+        time_and_text.append(str(tweet[0]) + '-' + str(tweet[1]))
+    return time_and_text
 
 ## [Part 4]
 # Finish the function getAuthorAndNumRetweets that returns a list of strings for the tweets that have been retweeted MORE than 2 times
@@ -86,8 +90,12 @@ def getTimeAndText(cur):
 # Return a list of strings that are in the form: author - # retweets as shown below
 # umsi - 5
 def getAuthorAndNumRetweets(cur):
-
-	pass
+    retweeted_repeats = []
+    cur.execute('SELECT author, retweets FROM Tweets WHERE retweets > 2')
+    retweet_count = cur.fetchall()
+    for tweet in retweet_count:
+        retweeted_repeats.append(tweet[0] + "-" + str(tweet[1]))
+    return retweeted_repeats
 
 ## Unittests to test the functions
 class TestHW9(unittest.TestCase):
